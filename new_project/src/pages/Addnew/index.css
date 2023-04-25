@@ -1,0 +1,7 @@
+.form {
+  display: flex;
+  background: rgb(220, 241, 244);
+  height: 100vh;
+  align-items: center;
+  justify-content: center;
+}
