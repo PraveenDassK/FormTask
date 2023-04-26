@@ -35,13 +35,9 @@ exports.edit = async function (req, res) {
   try {
     const id = req.params.id;
     if (!id) return res.status(400).send("id is required");
-    const data = await FormModel.findByIdAndUpdate(
-      { _id: id },
-      () => req.body,
-      {
-        new: true,
-      }
-    );
+    const data = await FormModel.updateOne({ _id: id }, req.body, {
+      new: true,
+    });
     return res.status(200).send(data);
   } catch (err) {
     return res.status(500).send(err.message);

@@ -1,8 +1,9 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
-import { Table } from "antd";
+import { Table, message } from "antd";
 import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
+import request from "../../apiClient/request";
 
 const SendButton = styled.button`
   width: 205px;
@@ -42,16 +43,44 @@ const StyledEditIcon = styled(EditOutlined)`
   margin-left: 4px;
 `;
 const Home = () => {
+  const [employeeData, setEmployeeData] = useState([]);
   const navigate = useNavigate();
+  useEffect(() => {
+    getData();
+  }, []);
   const handleClick = () => {
     navigate("/form");
   };
   const handleDelete = (id) => {
-    console.log("delete: " + id);
+    request
+      .delete(`form/deleteData/${id}`)
+      .then((res) => {
+        if (res.status === 200) {
+          getData();
+          message.success(" Employee Successfully Deleted");
+        }
+      })
+      .catch((e) => {
+        message.error("Something went wrong");
+      });
   };
+
   const handleEdit = (id) => {
-    console.log("delete: " + id);
+    navigate(`/form/${id}`);
   };
+  const getData = () => {
+    request
+      .get("form/getData")
+      .then((res) => {
+        if (res.status >= 200 && res.status < 208) {
+          setEmployeeData(res.data);
+        } else {
+          message.error("Something went wrong");
+        }
+      })
+      .catch((e) => message.error("Something went wrong"));
+  };
+
   const columns = [
     { title: "Name", key: "name", dataIndex: "name" },
     { title: "Email", key: "email", dataIndex: "email" },
@@ -65,16 +94,21 @@ const Home = () => {
       title: "Actions",
       key: "actions",
       render: (data) => (
-        <>
-          <div onClick={() => handleDelete(data._id)}>
-            <StyledDeleteIcon />
-          </div>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            flexDirection: "row",
+          }}>
           <StyledEditIcon
             onClick={() => {
               handleEdit(data._id);
             }}
           />
-        </>
+          <div onClick={() => handleDelete(data._id)}>
+            <StyledDeleteIcon />
+          </div>
+        </div>
       ),
     },
   ];
@@ -84,10 +118,7 @@ const Home = () => {
         <SendButton onClick={handleClick}>Add New</SendButton>
       </ButtonDiv>
       <div>
-        <Table
-          columns={columns}
-          // dataSource={}
-        />
+        <Table columns={columns} dataSource={employeeData} />
       </div>
     </div>
   );

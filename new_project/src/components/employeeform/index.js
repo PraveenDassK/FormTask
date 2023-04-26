@@ -1,10 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Form, Select, Input } from "antd";
+import { Form, Select, Input, message } from "antd";
 import styled from "styled-components";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 import { data } from "../../data/data";
 import { useNavigate } from "react-router-dom";
+import request from "../../apiClient/request";
 const InputDiv = styled.div`
   width: 100%;
   margin-bottom: 1em;
@@ -43,13 +44,9 @@ const StyledSelect = styled(Select)`
     padding: 8px 10px !important;
   }
 `;
-const EmployeeForm = ({
-  isEdit,
-  currentEmployee,
-  updateEmployee,
-  postEmployee,
-}) => {
+const EmployeeForm = ({ isEdit, currentEmployee, id }) => {
   const [phone, setPhone] = useState("");
+  const [newData, setNewData] = useState(currentEmployee);
   const [form] = Form.useForm();
   const navigate = useNavigate();
   const handlePhoneInput = (value, country, e, formattedValue) => {
@@ -58,16 +55,16 @@ const EmployeeForm = ({
   useEffect(() => {
     if (isEdit === true) {
       form.setFieldsValue({
-        name: currentEmployee.name,
-        age: currentEmployee.designation,
-        phone: currentEmployee.description,
-        email: currentEmployee.email,
-        department: currentEmployee.department,
+        name: currentEmployee[0]?.name,
+        age: currentEmployee[0]?.age.toString(),
+        phonenumber: currentEmployee[0]?.phone.toString(),
+        email: currentEmployee[0]?.email,
+        department: currentEmployee[0]?.department,
       });
     } else {
       form.resetFields();
     }
-  }, [currentEmployee, isEdit]);
+  }, [currentEmployee]);
   const submitHandler = (e) => {
     const submittedValue = {
       name: e.name,
@@ -77,9 +74,29 @@ const EmployeeForm = ({
       department: e.department,
     };
 
-    console.log(submittedValue, "this is sumbited value");
-    navigate("/");
+    if (!isEdit) {
+      request
+        .post("/form/addData", submittedValue)
+        .then((res) => {
+          if (res.status >= 200 && res.status < 208) {
+            message.success("Employee Data added succesfully");
+            navigate("/");
+          }
+        })
+        .catch((e) => message.error("Something went wrong"));
+    } else {
+      request
+        .patch(`/form/updateData/${id}`, submittedValue)
+        .then((res) => {
+          if (res.status >= 200 && res.status < 208) {
+            message.success("Employee Data Updated succesfully");
+            navigate("/");
+          }
+        })
+        .catch((e) => message.error("Something went wrong"));
+    }
   };
+
   return (
     <>
       <Form
@@ -185,7 +202,7 @@ const EmployeeForm = ({
             ]}>
             <PhoneInput
               country={"in"}
-              value={phone}
+              // value={phone}
               countryCodeEditable={false}
               placeholder='Mobile number'
               specialLabel='Phone Number'
@@ -193,7 +210,7 @@ const EmployeeForm = ({
                 width: "100%",
                 height: "44px",
               }}
-              onChange={handlePhoneInput}
+              // onChange={handlePhoneInput}
             />
           </Form.Item>
         </InputDiv>
@@ -219,7 +236,7 @@ const EmployeeForm = ({
         </InputDiv>
         <SendButtonDiv>
           <SendButton type='primary' htmlType='submit'>
-            {isEdit ? "Add employeee" : " Update employeee"}
+            {isEdit ? "Update employeee" : " Add employeee"}
           </SendButton>
         </SendButtonDiv>
       </Form>

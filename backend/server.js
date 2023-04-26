@@ -1,8 +1,10 @@
 const express = require("express");
 const mongoose = require("mongoose");
-const PORT = 3000;
+const CORS = require("cors");
+const PORT = 3001;
 const formRoute = require("./routes/formRoute");
 const app = express();
+app.use(CORS({ origin: "*" }));
 app.use(express.json());
 mongoose
   .connect("mongodb://localhost:27017/formtask")
